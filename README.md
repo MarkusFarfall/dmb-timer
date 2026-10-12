@@ -157,3 +157,8 @@ npm run check:push     # отправка: локальный HTTPS-приёмн
 Проект живёт в монорепозитории [`MarkusFarfall/apps`](https://github.com/MarkusFarfall/apps) в папке `projects/dmb-timer`
 и разворачивается отдельным проектом на Vercel: **Root Directory** = `projects/dmb-timer`, фреймворк — Vite.
 Каждый push в `main`, затрагивающий эту папку, обновляет прод автоматически.
+
+---
+
+Выделено из монорепозитория [MarkusFarfall/apps](https://github.com/MarkusFarfall/apps) (коммит 46863ca):
+полная история папки сохранена через git filter-repo.
