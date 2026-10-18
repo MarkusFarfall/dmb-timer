@@ -7,7 +7,11 @@ export function Card({ children, className, onClick, delay = 0 }: { children: Re
     <div
       onClick={onClick}
       style={{ animationDelay: `${delay}ms` }}
-      className={cn('glass pop-in rounded-3xl p-5', onClick && 'cursor-pointer active:scale-[0.985] transition-transform', className)}
+      className={cn(
+        'glass pop-in card-lift rounded-3xl p-5',
+        onClick && 'cursor-pointer active:scale-[0.985] transition-transform',
+        className
+      )}
     >
       {children}
     </div>
@@ -16,14 +20,78 @@ export function Card({ children, className, onClick, delay = 0 }: { children: Re
 
 export function SectionTitle({ children, right }: { children: ReactNode; right?: ReactNode }) {
   return (
-    <div className="mb-3 flex items-center justify-between">
-      <h3 className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/50">{children}</h3>
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <h3 className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/50">
+        <span className="bg-grad inline-block h-3.5 w-1 rounded-full" aria-hidden />
+        {children}
+      </h3>
       {right}
     </div>
   );
 }
 
-export function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title?: string; children: ReactNode }) {
+/** тонкая полоса прогресса с градиентом темы */
+export function Bar({ pct, className, shimmer = false }: { pct: number; className?: string; shimmer?: boolean }) {
+  return (
+    <div className={cn('h-2 overflow-hidden rounded-full bg-white/10', className)} role="progressbar" aria-valuenow={Math.round(pct * 100)} aria-valuemin={0} aria-valuemax={100}>
+      <div className="bg-grad relative h-full rounded-full transition-[width] duration-700 ease-out" style={{ width: `${Math.max(0, Math.min(100, pct * 100))}%` }}>
+        {shimmer && <div className="shimmer absolute inset-0" />}
+      </div>
+    </div>
+  );
+}
+
+export function Chip({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <span className={cn('inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-bold text-white/70', className)}>
+      {children}
+    </span>
+  );
+}
+
+export function IconBtn({
+  children,
+  onClick,
+  label,
+  className,
+  title,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+  label: string;
+  className?: string;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={title ?? label}
+      className={cn(
+        'glass hover-zoom grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white/80 transition-colors hover:border-white/20 hover:text-white active:scale-95',
+        className
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function Sheet({
+  open,
+  onClose,
+  title,
+  children,
+  wide = false,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title?: string;
+  children: ReactNode;
+  /** широкая десктопная модалка (настройки, шаринг) */
+  wide?: boolean;
+}) {
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -37,23 +105,48 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={title}>
       <div className="fade absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="sheet-up relative max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-[2rem] border border-white/10 bg-[var(--card)] p-5 pb-8 shadow-2xl sm:rounded-[2rem] safe-bottom">
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/15 sm:hidden" />
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold">{title}</h2>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-white/5 hover:bg-white/10">
-            <X size={18} />
-          </button>
+      <div
+        className={cn(
+          'sheet-up relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[2rem] border border-white/10 bg-[var(--card)] shadow-2xl sm:rounded-[2rem]',
+          wide ? 'max-w-3xl' : 'max-w-lg'
+        )}
+      >
+        <div className="shrink-0 px-5 pt-5 sm:px-7 sm:pt-6">
+          <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/15 sm:hidden" />
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-display text-lg font-bold sm:text-xl">{title}</h2>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Закрыть"
+              title="Закрыть (Esc)"
+              className="hover-zoom grid h-9 w-9 place-items-center rounded-full bg-white/5 text-white/70 transition-colors hover:bg-white/10 hover:text-white active:scale-95"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
-        {children}
+        <div className="overflow-y-auto px-5 pb-8 sm:px-7 safe-bottom">{children}</div>
       </div>
     </div>
   );
 }
 
-export function ProgressRing({ pct, children, size = 300, stroke = 16 }: { pct: number; children?: ReactNode; size?: number; stroke?: number }) {
+export function ProgressRing({
+  pct,
+  children,
+  size = 300,
+  stroke = 16,
+  className,
+}: {
+  pct: number;
+  children?: ReactNode;
+  size?: number;
+  stroke?: number;
+  className?: string;
+}) {
   const r = (size - stroke) / 2 - 6;
   const c = 2 * Math.PI * r;
   const inner = r - stroke - 2;
@@ -62,7 +155,7 @@ export function ProgressRing({ pct, children, size = 300, stroke = 16 }: { pct: 
   const kx = size / 2 + r * Math.cos(ang);
   const ky = size / 2 + r * Math.sin(ang);
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[320px]">
+    <div className={cn('relative mx-auto aspect-square w-full max-w-[320px]', className)}>
       <svg viewBox={`0 0 ${size} ${size}`} className="h-full w-full">
         <defs>
           <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
@@ -152,13 +245,19 @@ export function Pogon({ stripes, gold, className }: { stripes: number; gold?: bo
 
 export function Toggle({ on, onChange, label, hint }: { on: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
   return (
-    <button onClick={() => onChange(!on)} className="flex w-full items-center justify-between gap-3 rounded-2xl bg-white/5 px-4 py-3 text-left">
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      onClick={() => onChange(!on)}
+      className="flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent bg-white/5 px-4 py-3 text-left transition-colors hover:border-white/10 hover:bg-white/[0.07] active:scale-[0.99]"
+    >
       <span>
         <span className="block text-sm font-semibold">{label}</span>
         {hint && <span className="block text-xs text-white/45">{hint}</span>}
       </span>
-      <span className={cn('relative h-7 w-12 shrink-0 rounded-full transition-colors', on ? 'bg-accent' : 'bg-white/15')}>
-        <span className={cn('absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all', on ? 'left-6' : 'left-1')} />
+      <span className={cn('relative h-7 w-12 shrink-0 rounded-full transition-colors', on ? 'bg-accent shadow-[0_0_14px_-2px_var(--accent)]' : 'bg-white/15')}>
+        <span className={cn('absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all duration-200', on ? 'left-6' : 'left-1')} />
       </span>
     </button>
   );

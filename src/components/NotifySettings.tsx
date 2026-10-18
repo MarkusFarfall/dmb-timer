@@ -114,7 +114,7 @@ export function NotifySettings({
       {state === 'denied' && (
         <div className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-200">
           Уведомления запрещены в браузере. Открой настройки сайта (замок в адресной строке) → «Уведомления» → «Разрешить».
-          <button onClick={() => void detect()} className="mt-2 block rounded-xl bg-white/10 px-3 py-2 text-xs font-bold text-white">
+          <button type="button" onClick={() => void detect()} className="hover-zoom mt-2 block rounded-xl bg-white/10 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-white/20">
             Проверить снова
           </button>
         </div>
@@ -130,7 +130,7 @@ export function NotifySettings({
           />
 
           {state === 'on' && prefs.push && (
-            <>
+            <div className="grid items-start gap-2 md:grid-cols-2">
               <Toggle
                 on={prefs.pushAch}
                 onChange={(v) => setPrefs({ ...prefs, pushAch: v })}
@@ -144,11 +144,13 @@ export function NotifySettings({
                 <div className="mt-3 flex flex-wrap gap-2">
                   {EVERY_N_OPTIONS.map((n) => (
                     <button
+                      type="button"
                       key={n}
+                      aria-pressed={prefs.pushDays === n}
                       onClick={() => setPrefs({ ...prefs, pushDays: n })}
                       className={cn(
-                        'rounded-full px-3.5 py-1.5 text-xs font-bold transition',
-                        prefs.pushDays === n ? 'bg-accent text-black' : 'bg-white/5 text-white/70 hover:bg-white/10'
+                        'hover-zoom rounded-full px-3.5 py-1.5 text-xs font-bold transition',
+                        prefs.pushDays === n ? 'bg-accent text-black shadow-[0_0_14px_-4px_var(--accent)]' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'
                       )}
                     >
                       {n === 0 ? 'Выкл' : `${n} дн`}
@@ -163,23 +165,26 @@ export function NotifySettings({
                   <div className="space-y-2">
                     {preview.map((n) => (
                       <div key={n.key} className="flex items-start gap-2 text-sm">
-                        <span className="mt-0.5 text-xs text-accent">{fmtShortDate(n.ts)}</span>
-                        <span className="min-w-0 flex-1 truncate text-white/75">{n.title}</span>
+                        <span className="mt-0.5 shrink-0 text-xs text-accent">{fmtShortDate(n.ts)}</span>
+                        <span className="min-w-0 flex-1 truncate text-white/75" title={n.title}>{n.title}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              <button
-                onClick={() => void test()}
-                disabled={busy}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white/5 py-3 text-sm font-bold disabled:opacity-50"
-              >
-                <Send size={16} /> {busy ? 'Отправляю…' : 'Проверить уведомление'}
-              </button>
-              {tested && <div className="px-1 text-xs text-white/60">{tested}</div>}
-            </>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => void test()}
+                  disabled={busy}
+                  className="hover-zoom flex w-full items-center justify-center gap-2 rounded-2xl bg-white/5 py-3 text-sm font-bold transition-colors hover:bg-white/10 active:scale-[0.98] disabled:opacity-50"
+                >
+                  <Send size={16} /> {busy ? 'Отправляю…' : 'Проверить уведомление'}
+                </button>
+                {tested && <div className="px-1 pt-2 text-xs text-white/60">{tested}</div>}
+              </div>
+            </div>
           )}
         </>
       )}
