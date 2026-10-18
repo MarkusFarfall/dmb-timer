@@ -62,12 +62,12 @@ export function Settings({
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="Настройки">
+    <Sheet open={open} onClose={onClose} title="Настройки" wide>
       <div className="space-y-6">
         {!standalone && (
-          <div className="rounded-3xl bg-accent/10 p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-grad grid h-11 w-11 place-items-center rounded-2xl text-black">
+          <div className="rounded-3xl bg-accent/10 p-4 sm:flex sm:items-center sm:gap-4">
+            <div className="flex items-center gap-3 sm:flex-1">
+              <div className="bg-grad glow grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-black">
                 <Smartphone size={20} />
               </div>
               <div className="flex-1">
@@ -76,11 +76,11 @@ export function Settings({
               </div>
             </div>
             {canInstall ? (
-              <button onClick={install} className="bg-grad mt-3 h-11 w-full rounded-2xl font-bold text-black">
+              <button type="button" onClick={install} className="bg-grad hover-zoom mt-3 h-11 w-full shrink-0 rounded-2xl px-6 font-bold text-black transition active:scale-[0.98] sm:mt-0 sm:w-auto">
                 Установить
               </button>
             ) : (
-              <div className="mt-3 flex items-start gap-2 text-xs text-white/60">
+              <div className="mt-3 flex items-start gap-2 text-xs text-white/60 sm:mt-0 sm:max-w-56">
                 <Share size={14} className="mt-0.5 shrink-0" />
                 {ios
                   ? 'В Safari нажми «Поделиться» → «На экран «Домой»».'
@@ -90,51 +90,59 @@ export function Settings({
           </div>
         )}
 
-        <div>
-          <SectionTitle>Профиль</SectionTitle>
-          <input value={draft.name} onChange={(e) => update({ ...draft, name: e.target.value })} placeholder="Имя / позывной" className={inputCls} maxLength={30} />
-        </div>
+        {/* две колонки на больших экранах: слева профиль и сроки, справа тема и отображение */}
+        <div className="grid items-start gap-6 md:grid-cols-2">
+          <div className="space-y-6">
+            <div>
+              <SectionTitle>Профиль</SectionTitle>
+              <input value={draft.name} onChange={(e) => update({ ...draft, name: e.target.value })} placeholder="Имя / позывной" className={inputCls} maxLength={30} aria-label="Имя или позывной" />
+            </div>
+            <div>
+              <SectionTitle>Сроки {!valid && <span className="text-red-400">— не сохранено</span>}</SectionTitle>
+              <DatesFields p={draft} set={update} />
+            </div>
+          </div>
 
-        <div>
-          <SectionTitle>Сроки {!valid && <span className="text-red-400">— не сохранено</span>}</SectionTitle>
-          <DatesFields p={draft} set={update} />
-        </div>
-
-        <div>
-          <SectionTitle>Войска / тема</SectionTitle>
-          <ThemePicker value={draft.theme} onChange={(t) => update({ ...draft, theme: t })} />
+          <div className="space-y-6">
+            <div>
+              <SectionTitle>Войска / тема</SectionTitle>
+              <ThemePicker value={draft.theme} onChange={(t) => update({ ...draft, theme: t })} />
+            </div>
+            <div className="space-y-2">
+              <SectionTitle>Отображение</SectionTitle>
+              <Toggle on={prefs.showMs} onChange={(v) => setPrefs({ ...prefs, showMs: v })} label="Миллисекунды" hint="Бегущие тысячные на главном кольце" />
+              <Toggle on={prefs.haptics} onChange={(v) => setPrefs({ ...prefs, haptics: v })} label="Вибро-отклик" hint="Лёгкая вибрация при нажатиях" />
+            </div>
+            <div>
+              <SectionTitle>Данные</SectionTitle>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={exportData} className="hover-zoom flex items-center justify-center gap-2 rounded-2xl bg-white/5 py-3 text-sm font-bold transition-colors hover:bg-white/10 active:scale-[0.98]">
+                  <Download size={16} /> Бэкап
+                </button>
+                <button type="button" onClick={() => fileRef.current?.click()} className="hover-zoom flex items-center justify-center gap-2 rounded-2xl bg-white/5 py-3 text-sm font-bold transition-colors hover:bg-white/10 active:scale-[0.98]">
+                  <Upload size={16} /> Загрузить
+                </button>
+                <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importData(e.target.files[0])} />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('Точно сбросить всё? Дневник тоже удалится.')) reset();
+                }}
+                className="hover-zoom mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-red-500/10 py-3 text-sm font-bold text-red-300 transition-colors hover:bg-red-500/20 active:scale-[0.98]"
+              >
+                <Trash2 size={16} /> Сбросить всё
+              </button>
+            </div>
+          </div>
         </div>
 
         <NotifySettings profile={profile} prefs={prefs} setPrefs={setPrefs} />
 
-        <div className="space-y-2">
-          <SectionTitle>Отображение</SectionTitle>
-          <Toggle on={prefs.showMs} onChange={(v) => setPrefs({ ...prefs, showMs: v })} label="Миллисекунды" hint="Бегущие тысячные на главном кольце" />
-          <Toggle on={prefs.haptics} onChange={(v) => setPrefs({ ...prefs, haptics: v })} label="Вибро-отклик" hint="Лёгкая вибрация при нажатиях" />
-        </div>
-
-        <div>
-          <SectionTitle>Данные</SectionTitle>
-          <div className="grid grid-cols-2 gap-2">
-            <button onClick={exportData} className="flex items-center justify-center gap-2 rounded-2xl bg-white/5 py-3 text-sm font-bold">
-              <Download size={16} /> Бэкап
-            </button>
-            <button onClick={() => fileRef.current?.click()} className="flex items-center justify-center gap-2 rounded-2xl bg-white/5 py-3 text-sm font-bold">
-              <Upload size={16} /> Загрузить
-            </button>
-            <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importData(e.target.files[0])} />
-          </div>
-          <button
-            onClick={() => {
-              if (confirm('Точно сбросить всё? Дневник тоже удалится.')) reset();
-            }}
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-red-500/10 py-3 text-sm font-bold text-red-300"
-          >
-            <Trash2 size={16} /> Сбросить всё
-          </button>
-        </div>
-
-        <p className="text-center text-[11px] text-white/30">ДМБ Таймер · данные хранятся только на твоём устройстве</p>
+        <p className="text-center text-[11px] text-white/30">
+          ДМБ Таймер · данные хранятся только на твоём устройстве
+          <span className="hidden lg:inline"> · горячие клавиши: 1–5 — разделы, B — табло, S — поделиться</span>
+        </p>
       </div>
     </Sheet>
   );
